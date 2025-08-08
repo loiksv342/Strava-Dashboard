@@ -1,0 +1,58 @@
+.custom-navbar {
+    background: linear-gradient(to right, #1f1f2e, #2c2c3c); /* granatowy gradient */
+    border-bottom: 2px solid #ff7f50; /* koralowa linia */
+  }
+
+  .custom-navbar .nav-link {
+    color: #ccc;
+    transition: all 0.2s ease-in-out;
+  }
+
+  /* Styles for the .custom-navbar .nav-link:hover and .custom-navbar .nav-link:focus 
+   to change text color to white, apply a coral semi-transparent background, and 
+   round the corners with a border-radius on hover or focus states */
+  .custom-navbar .nav-link:hover,
+  .custom-navbar .nav-link:focus {
+    color: #ffffff;
+    background-color: rgba(255, 127, 80, 0.15); /* koralowy hover */
+    border-radius: 6px;
+  }
+
+  .custom-navbar .nav-link.active {
+    color: #fff;
+    font-weight: bold;
+    border-bottom: 2px solid #ff7f50;
+  }
+
+  .navbar-brand {
+    color: #ff7f50 !important; /* koralowy brand */
+    font-weight: 600;
+  }
+
+  .bg-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url("https://wallpapercrafter.com/sizes/3840x2160/201338-cycling-at-east-coast-park.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: -1; /* Tło z tyłu */
+  }
+  .bg-text {
+    position: relative;
+    z-index: 2;
+    margin-top: 80px; /* żeby nie zachodziło na navbar */
+    background-color: rgba(0,0,0, 0.4);
+    color: white;
+    border: 3px solid #f1f1f1;
+    width: 80%;
+    max-width: 800px;
+    padding: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    border-radius: 12px;
+  }
