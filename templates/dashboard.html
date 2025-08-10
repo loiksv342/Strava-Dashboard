@@ -1,83 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
-    <title>Strava Dashboard</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-  
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  
-    <!-- Twój CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Strava Dashboard</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Twój CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
 <body>
-    <nav class="navbar navbar-expand-lg custom-navbar">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="/">Strava Dashboard</a>
-          <button class="navbar-toggler bg-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain" 
-                  aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-      
-          <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/dashboard">Dashboard</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/activities">Activities</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="https://github.com/loiksv342" target="_blank">GitHub</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="/authorize">Connect with Strava</a>
-              </li>
-              <li>
-                <a class="nav-link" href="/about_project">About this project</a>
-              </li>
-            </ul>
+  <nav class="navbar navbar-expand-lg custom-navbar bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">Strava Dashboard</a>
+      <button
+        class="navbar-toggler bg-secondary"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarMain"
+        aria-controls="navbarMain"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarMain">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="/dashboard">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/activities">Activities</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/loiksv342" target="_blank" rel="noopener">GitHub</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/authorize">Connect with Strava</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about_project">About this project</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <section class="mb-5">
+      <h2 class="mb-4 text-center">Summary of bike rides</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100 text-center">
+            <h5>Total distance</h5>
+            <p><strong id="total_distance">...</strong></p>
           </div>
         </div>
-      </nav>
-      <div class="container">
-        <div class="container mt-4">
-          <h2>Summary of bike rides</h2>
-          <div class="row text-center">
-            <div class="col-md-4">
-              <div class="card p-3 shadow-sm">
-                <h5>Total distance</h5>
-                <p><strong id="total_distance">...</strong></p>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card p-3 shadow-sm">
-                <h5>Average speed</h5>
-                <p><strong id="average_speed">...</strong></p>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card p-3 shadow-sm">
-                <h5>Average heart rate</h5>
-                <p><strong id="average_hr">...</strong></p>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card p-3 shadow-sm">
-                <h5>Longest distance</h5>
-                <p><strong id="longest_distance_bike">...</strong></p>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="card p-3 shadow-sm">
-                <h5>Longest distance</h5>
-                <p><strong id="longest_distance_bike">...</strong></p>
-              </div>
-            </div>
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100 text-center">
+            <h5>Average speed</h5>
+            <p><strong id="average_speed">...</strong></p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100 text-center">
+            <h5>Average heart rate</h5>
+            <p><strong id="average_hr">...</strong></p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100 text-center">
+            <h5>Longest distance</h5>
+            <p><strong id="longest_distance_bike">...</strong></p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100 text-center">
+            <h5>Average cadence</h5>
+            <p><strong id="total_average_cadence">...</strong></p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100 text-center">
+            <h5>Total time</h5>
+            <p><strong id="total_time_bike">...</strong></p>
           </div>
         </div>
       </div>
-      <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </section>
+
+    <section class="mb-5">
+      <h3 class="mb-4 text-center">Recent bike rides</h3>
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100">
+            <h5>Distance</h5>
+            <ul class="distance-list list-unstyled mb-0">
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100">
+            <h5>Speed</h5>
+            <ul class="speed-list list-unstyled mb-0">
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+            </ul>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-3 shadow-sm h-100">
+            <h5>Heart rate</h5>
+            <ul class="heart-rate-list list-unstyled mb-0">
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+              <li>...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <canvas id="distanceChart" style="max-height: 300px; width: 100%;"></canvas>
+          </div>
+          <div class="col-md-6">
+            <canvas id="speedChart" style="max-height: 300px; width: 100%;"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>

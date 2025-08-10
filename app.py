@@ -35,7 +35,6 @@ def authorize():
         f"&response_type=code&redirect_uri=http://127.0.0.1:5000/authorized"
         f"&approval_prompt=auto&scope=activity:read_all"
     )
-    print("debug: auth_url:", auth_url)
     return redirect(auth_url)
 
 # === Po autoryzacji: zapis tokenów ===
@@ -53,7 +52,6 @@ def authorized():
     )
 
     token_data = response.json()
-    print("DEBUG token_data:", token_data)
 
     if "access_token" not in token_data:
         return f"Token exchange failed: {token_data}"
@@ -87,7 +85,7 @@ def get_valid_token():
         )
 
         if response.status_code != 200:
-            print("❌ Błąd podczas odświeżania tokena:", response.text)
+            print(" Błąd podczas odświeżania tokena:", response.text)
             return None
 
         token_data = response.json()
@@ -110,30 +108,40 @@ def activities():
     access_token = get_valid_token()
     if not access_token:
         return redirect('/authorize')
-    activities = get_activities(access_token)
+
+    # Pobierz aktywności
     bike_activities = get_activities(access_token, sport_type="Ride")
 
-    # DEBUG – sprawdź co zawiera bike_activities
-    print("DEBUG TYPE:", type(bike_activities))
-    print("DEBUG FIRST ITEM:", bike_activities[0] if isinstance(bike_activities, list) else bike_activities)
-
+    # Jeśli brak listy lub zły format
     if not isinstance(bike_activities, list):
-        return "Błąd: dane nie są listą aktywności"
+        return jsonify({"error": "Błąd: dane nie są listą aktywności"}), 400
 
-    total_distance_km = sum(activity.get("distance", 0) for activity in bike_activities) / 1000
-    total_time_hours = sum(activity.get("moving_time", 0) for activity in bike_activities) / 3600
+    # Podstawowe zmienne
+    total_distance_km = sum(a.get("distance", 0) for a in bike_activities) / 1000 if bike_activities else 0
+    total_time_hours = sum(a.get("moving_time", 0) for a in bike_activities) / 3600 if bike_activities else 0
     average_speed_kmh = total_distance_km / total_time_hours if total_time_hours > 0 else 0
-    hr_values = [activity.get("average_heartrate") for activity in bike_activities if activity.get("average_heartrate") is not None]
-    run_activities = get_activities(access_token, sport_type="Run")
-    average_heart_rate = sum(hr_values) / len(hr_values) if hr_values else 0
-    longest_distance_bike = max(activity.get("distance", 0) for activity in bike_activities) / 1000
 
+    # Tętno
+    hr_values = [a.get("average_heartrate") for a in bike_activities if a.get("average_heartrate") is not None]
+    average_heart_rate = sum(hr_values) / len(hr_values) if hr_values else 0
+
+    # Najdłuższy dystans
+    longest_distance_bike = max((a.get("distance", 0) for a in bike_activities), default=0) / 1000
+
+    # Kadencja
+    cadence_values = [a.get("average_cadence") for a in bike_activities if a.get("average_cadence") is not None]
+    total_average_cadence = round(sum(cadence_values) / len(cadence_values), 1) if cadence_values else "N/A"
+
+    # Czas jazdy
+    total_time_bike = sum(a.get("moving_time", 0) for a in bike_activities) / 3600 if bike_activities else 0
+
+    # Podgląd
     preview = [{
-        "name": activity.get("name"),
-        "distance": activity.get("distance", 0),
-        "average_speed": activity.get("average_speed", 0),
-        "start_date": activity.get("start_date", "")
-    } for activity in bike_activities]
+        "name": a.get("name", "Brak nazwy"),
+        "distance": a.get("distance", 0),
+        "average_speed": a.get("average_speed", 0),
+        "start_date": a.get("start_date", "")
+    } for a in bike_activities]
 
     return jsonify({
         "summary": {
@@ -141,6 +149,8 @@ def activities():
             "average_speed_kmh": round(average_speed_kmh, 2),
             "average_heart_rate_bpm": round(average_heart_rate, 1),
             "longest_distance_bike": round(longest_distance_bike, 2),
+            "total_average_cadence": total_average_cadence if total_average_cadence == "N/A" else round(total_average_cadence, 1),
+            "total_time_bike": round(total_time_bike, 1),
         },
         "preview": preview
     })
@@ -156,7 +166,6 @@ def dashboard():
 # === Pobieranie aktywności ze Strava API ===
 def get_activities(access_token, max_pages=5, per_page=100, sport_type=None):
     all_activities = []
-
     for page in range(1, max_pages + 1):
         response = requests.get(
             "https://www.strava.com/api/v3/athlete/activities",
@@ -165,16 +174,15 @@ def get_activities(access_token, max_pages=5, per_page=100, sport_type=None):
         )
 
         if response.status_code != 200:
-            print(f"❌ Błąd API (strona {page}): {response.status_code} - {response.text}")
+            print(f"Błąd API (strona {page}): {response.status_code} - {response.text}")
             break
 
         try:
             page_activities = response.json()
         except Exception as e:
-            print(f"❌ Nie można sparsować odpowiedzi JSON: {e}")
+            print(f"Nie można sparsować odpowiedzi JSON: {e}")
             print(f"Treść odpowiedzi: {response.text}")
             break
-
         print(f"📦 Strona {page}: pobrano {len(page_activities)} aktywności")
 
         if not isinstance(page_activities, list) or not page_activities:
@@ -183,11 +191,10 @@ def get_activities(access_token, max_pages=5, per_page=100, sport_type=None):
         # 👇 Filtrowanie po sport_type, jeśli podano
         if sport_type:
             page_activities = [a for a in page_activities if a.get("sport_type") == sport_type]
-
+        recent_rides = page_activities[:5]
         all_activities.extend(page_activities)
 
     print(f"✅ Łącznie pobrano {len(all_activities)} aktywności{' typu ' + sport_type if sport_type else ''}")
-    
     return all_activities
 @app.route('/logout')
 def logout():
