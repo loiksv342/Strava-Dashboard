@@ -27,6 +27,13 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
+      <select id="sport-type-select">
+        <option value="">Wszystkie</option>
+        <option value="Ride">Ride</option>
+        <option value="Run">Run</option>
+        <option value="Hike">Hike</option>
+        <!-- dodaj inne typy -->
+      </select>
 
       <div class="collapse navbar-collapse" id="navbarMain">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -52,7 +59,7 @@
 
   <div class="container">
     <section class="mb-5">
-      <h2 class="mb-4 text-center">Summary of bike rides</h2>
+      <h2 class="mb-4 text-center summary-heading">Summary of bike rides</h2>
       <div class="row g-4">
         <div class="col-md-4">
           <div class="card p-3 shadow-sm h-100 text-center">
@@ -133,17 +140,20 @@
           </div>
         </div>
       </div>
-
-      <div class="chart-section">
-        <div class="row g-4">
-          <div class="col-md-6">
-            <canvas id="distanceChart" style="max-height: 300px; width: 100%;"></canvas>
-          </div>
-          <div class="col-md-6">
-            <canvas id="speedChart" style="max-height: 300px; width: 100%;"></canvas>
-          </div>
+      <div class="row">
+        <div class="col-md-8">
+          <select id="chart-select">
+            <option value="distance">Distance</option>
+            <option value="sport-type-percentage">Sport type percentage</option>
+          </select>
         </div>
-      </div>
+        <div class="col-6 col-md-4"></div>
+      </div> 
+
+       <div class="chart-section">
+        <div class="loader"></div>
+        <span>Choose your chart</span>
+      </div> 
     </section>
   </div>
 

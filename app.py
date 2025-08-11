@@ -109,38 +109,37 @@ def activities():
     if not access_token:
         return redirect('/authorize')
 
-    # Pobierz aktywności
-    bike_activities = get_activities(access_token, sport_type="Ride")
+    sport_type = request.args.get("sport_type")
+    # jeśli pusty string lub None -> traktuj jako brak filtra (czyli wszystkie sporty)
+    if not sport_type:
+        sport_type = None
 
-    # Jeśli brak listy lub zły format
+    bike_activities = get_activities(access_token, sport_type=sport_type)
+
     if not isinstance(bike_activities, list):
         return jsonify({"error": "Błąd: dane nie są listą aktywności"}), 400
 
-    # Podstawowe zmienne
     total_distance_km = sum(a.get("distance", 0) for a in bike_activities) / 1000 if bike_activities else 0
     total_time_hours = sum(a.get("moving_time", 0) for a in bike_activities) / 3600 if bike_activities else 0
     average_speed_kmh = total_distance_km / total_time_hours if total_time_hours > 0 else 0
 
-    # Tętno
     hr_values = [a.get("average_heartrate") for a in bike_activities if a.get("average_heartrate") is not None]
     average_heart_rate = sum(hr_values) / len(hr_values) if hr_values else 0
 
-    # Najdłuższy dystans
     longest_distance_bike = max((a.get("distance", 0) for a in bike_activities), default=0) / 1000
 
-    # Kadencja
     cadence_values = [a.get("average_cadence") for a in bike_activities if a.get("average_cadence") is not None]
     total_average_cadence = round(sum(cadence_values) / len(cadence_values), 1) if cadence_values else "N/A"
 
-    # Czas jazdy
-    total_time_bike = sum(a.get("moving_time", 0) for a in bike_activities) / 3600 if bike_activities else 0
-
-    # Podgląd
     preview = [{
         "name": a.get("name", "Brak nazwy"),
         "distance": a.get("distance", 0),
         "average_speed": a.get("average_speed", 0),
-        "start_date": a.get("start_date", "")
+        "start_date": a.get("start_date", ""),
+        "sport_type": a.get("sport_type", ""),
+        "average_heartrate": a.get("average_heartrate"),
+        "moving_time": a.get("moving_time", 0),
+        "average_cadence": a.get("average_cadence")
     } for a in bike_activities]
 
     return jsonify({
@@ -150,11 +149,11 @@ def activities():
             "average_heart_rate_bpm": round(average_heart_rate, 1),
             "longest_distance_bike": round(longest_distance_bike, 2),
             "total_average_cadence": total_average_cadence if total_average_cadence == "N/A" else round(total_average_cadence, 1),
-            "total_time_bike": round(total_time_bike, 1),
+            "total_time_bike": round(total_time_hours, 1),
+            "sport_type": sport_type or "All"
         },
         "preview": preview
     })
-
 
 @app.route('/dashboard')
 def dashboard():
