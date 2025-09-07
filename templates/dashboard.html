@@ -4,12 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Strava Dashboard</title>
-
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Twój CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
@@ -28,7 +25,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <select id="sport-type-select">
-        <option value="">Wszystkie</option>
+        <option value="All">All</option>
         <option value="Ride">Ride</option>
         <option value="Run">Run</option>
         <option value="Hike">Hike</option>
@@ -101,7 +98,7 @@
     </section>
 
     <section class="mb-5">
-      <h3 class="mb-4 text-center">Recent bike rides</h3>
+      <h3 class="mb-4 text-center sport-subtext">Recent bike rides</h3>
       <div class="row g-4 mb-4">
         <div class="col-md-4">
           <div class="card p-3 shadow-sm h-100">

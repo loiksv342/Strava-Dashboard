@@ -4,6 +4,7 @@ import os
 import requests 
 import pandas as pd
 import time
+from model import strava_model, train_model_if_needed
 
 # === Załaduj dane z .env ===
 load_dotenv()
@@ -12,9 +13,15 @@ STRAVA_CLIENT_ID = os.getenv("STRAVA_CLIENT_ID")
 STRAVA_CLIENT_SECRET = os.getenv("STRAVA_CLIENT_SECRET")
 
 app = Flask(__name__)
-app.secret_key = "jakiś_super_sekret"
+app.secret_key = "secret"
 
-# === Strona główna ===
+def format_time(seconds):
+    """Formatuje czas w sekundach na czytelny format (HH:MM:SS)"""
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+
 @app.route('/')
 def index():
     access_token = get_valid_token()
@@ -32,7 +39,7 @@ def about_project():
 def authorize():
     auth_url = (
         f"https://www.strava.com/oauth/authorize?client_id={STRAVA_CLIENT_ID}"
-        f"&response_type=code&redirect_uri=http://127.0.0.1:5000/authorized"
+        f"&response_type=code&redirect_uri=http://127.0.0.1:1234/authorized"
         f"&approval_prompt=auto&scope=activity:read_all"
     )
     return redirect(auth_url)
@@ -90,14 +97,14 @@ def get_valid_token():
 
         token_data = response.json()
         if "access_token" not in token_data:
-            print("❌ Brak tokena w odpowiedzi:", token_data)
+            print("Renspond without token", token_data)
             return None
 
         session["access_token"] = token_data["access_token"]
         session["refresh_token"] = token_data["refresh_token"]
         session["expires_at"] = token_data["expires_at"]
 
-        print("✅ Access token refreshed.")
+        print("Access token refreshed.")
         return session["access_token"]
 
     return access_token
@@ -110,14 +117,13 @@ def activities():
         return redirect('/authorize')
 
     sport_type = request.args.get("sport_type")
-    # jeśli pusty string lub None -> traktuj jako brak filtra (czyli wszystkie sporty)
     if not sport_type:
         sport_type = None
 
     bike_activities = get_activities(access_token, sport_type=sport_type)
 
     if not isinstance(bike_activities, list):
-        return jsonify({"error": "Błąd: dane nie są listą aktywności"}), 400
+        return jsonify({"Sport data is not valid format"}), 400
 
     total_distance_km = sum(a.get("distance", 0) for a in bike_activities) / 1000 if bike_activities else 0
     total_time_hours = sum(a.get("moving_time", 0) for a in bike_activities) / 3600 if bike_activities else 0
@@ -162,7 +168,7 @@ def dashboard():
         return redirect('/authorize')
     return render_template('dashboard.html')
 
-# === Pobieranie aktywności ze Strava API ===
+# === Fetching data from strava api===
 def get_activities(access_token, max_pages=5, per_page=100, sport_type=None):
     all_activities = []
     for page in range(1, max_pages + 1):
@@ -193,12 +199,95 @@ def get_activities(access_token, max_pages=5, per_page=100, sport_type=None):
         recent_rides = page_activities[:5]
         all_activities.extend(page_activities)
 
-    print(f"✅ Łącznie pobrano {len(all_activities)} aktywności{' typu ' + sport_type if sport_type else ''}")
+    print(f"DEBUG: Fetched  {len(all_activities)} activities{' type of sport ' + sport_type if sport_type else ''}")
     return all_activities
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/')
 
+@app.route('/predict_distances', methods=['POST'])
+def predict_distances_route():
+    token = get_valid_token()
+    if not token:
+        return redirect('/authorize')
+
+    train_model_if_needed(token)
+
+    data = request.json
+    if not data:
+        return jsonify({"error": "No JSON data provided"}), 400
+
+    average_speed_kmh = data.get('average_speed_kmh', 10)  # domyślnie 10 km/h
+
+    try:
+        predictions = strava_model.predict_all_distances(average_speed_kmh)
+        
+        # Console log predykcji
+        print(f"🏃 Predykcje dla prędkości {average_speed_kmh} km/h:")
+        for distance, time_seconds in predictions.items():
+            print(f"  {distance}: {time_seconds:.1f} sekund ({format_time(time_seconds)})")
+        
+        # Formatuj czasy na czytelny format
+        formatted_predictions = {}
+        for distance, time_seconds in predictions.items():
+            formatted_predictions[distance] = {
+                "seconds": round(time_seconds, 1),
+                "formatted": format_time(time_seconds)
+            }
+
+        return jsonify({
+            "average_speed_kmh": average_speed_kmh,
+            "predictions": formatted_predictions
+        })
+
+    except Exception as e:
+        print(f"❌ Błąd predykcji dystansów: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/predict_specific', methods=['POST'])
+def predict_specific_route():
+    token = get_valid_token()
+    if not token:
+        return redirect('/authorize')
+
+    train_model_if_needed(token)
+
+    data = request.json
+    if not data:
+        return jsonify({"error": "No JSON data provided"}), 400
+
+    distance_km = data.get('distance_km', 5)
+    average_speed_kmh = data.get('average_speed_kmh', 10)
+
+    try:
+        prediction = strava_model.predict_for_distance(distance_km, average_speed_kmh)
+        prediction10 = prediction.predict_10km(average_speed_kmh)
+        prediction20 = prediction.predict_20km(average_speed_kmh)
+        prediction5 = prediction.predict_5km(average_speed_kmh)
+        predictionMarathon = prediction.predict_marathon(average_speed_kmh)
+        
+        # Console log predykcji
+        print(f"🎯 Predykcja dla {distance_km} km przy {average_speed_kmh} km/h: {prediction:.1f} sekund ({format_time(prediction)})")
+        
+        return jsonify({
+            "distance_km": distance_km,
+            "average_speed_kmh": average_speed_kmh,
+            "predicted_time_seconds": round(prediction, 1),
+            "predicted_time_formatted": format_time(prediction),
+            "prediction_5km": prediction5,
+            "prediction_10km": prediction10,
+            "prediction_20km": prediction20,
+            "prediction_marathon": predictionMarathon
+        })
+
+    except Exception as e:
+        print(f"❌ Błąd predykcji specyficznej: {e}")
+        return jsonify({"error": str(e)}), 500
+@app.route('/prediction')
+def prediction():
+    return render_template('prediction.html')
+
 if __name__ == '__main__':
-    app.run(debug=True, port=1234)
+    app.run(host="0.0.0.0", port=1234, debug=True)
