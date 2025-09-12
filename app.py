@@ -156,7 +156,7 @@ def activities():
             "longest_distance_bike": round(longest_distance_bike, 2),
             "total_average_cadence": total_average_cadence if total_average_cadence == "N/A" else round(total_average_cadence, 1),
             "total_time_bike": round(total_time_hours, 1),
-            "sport_type": sport_type or "All"
+            "sport_type": sport_type
         },
         "preview": preview
     })
@@ -183,6 +183,7 @@ def get_activities(access_token, max_pages=5, per_page=100, sport_type=None):
             break
 
         try:
+
             page_activities = response.json()
         except Exception as e:
             print(f"Nie można sparsować odpowiedzi JSON: {e}")
@@ -219,7 +220,8 @@ def predict_distances_route():
     if not data:
         return jsonify({"error": "No JSON data provided"}), 400
 
-    average_speed_kmh = data.get('average_speed_kmh', 10)  # domyślnie 10 km/h
+    # average_speed_kmh = data.get('average_speed_kmh', 10)  # domyślnie 10 km/h
+    average_speed_kmh = 10.91
 
     try:
         predictions = strava_model.predict_all_distances(average_speed_kmh)
@@ -289,5 +291,14 @@ def predict_specific_route():
 def prediction():
     return render_template('prediction.html')
 
+@app.route('/demo_data')
+def load_demo_data():
+    demo_data = pd.read_csv('activities.csv')
+@app.route('/save_activities_csv')
+def save_activities_csv():
+    page_activities = pd.to_csv('activities_strava')
+    if page_activities:
+        print("Saved activities to csv")
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=1234, debug=True)
+ 

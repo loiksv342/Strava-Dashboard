@@ -6,11 +6,6 @@ function loadActivities() {
     let sportSubText = document.querySelector(".sport-subtext");
     chartSection.innerHTML = '<div class="loader"></div>';
 
-    if (document.querySelector("#sport-type-select").value == "All") {
-        summaryHeading.innerHTML = "All"
-        sportSubText.innerHTML = "Recent activities"
-    }
-
     const sportType = document.getElementById("sport-type-select").value;
     const choosenChart = document.getElementById("chart-select").value;
 
@@ -151,7 +146,6 @@ function loadActivities() {
         });
 }
 
-// ✅ NOWA FUNKCJA: Predykcja dla wszystkich dystansów
 function fetchPredictionDistances(averageSpeedKmh) {
     fetch('/predict_distances', {
         method: 'POST',
@@ -178,7 +172,6 @@ function fetchPredictionDistances(averageSpeedKmh) {
     });
 }
 
-// ✅ FUNKCJA: Predykcja dla konkretnego dystansu
 function fetchSpecificPrediction(distanceKm, averageSpeedKmh) {
     fetch('/predict_specific', {
         method: 'POST',
