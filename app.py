@@ -169,7 +169,7 @@ def dashboard():
     return render_template('dashboard.html')
 
 # === Fetching data from strava api===
-def get_activities(access_token, max_pages=5, per_page=100, sport_type=None):
+def get_activities(access_token, max_pages=1, per_page=10, sport_type=None):
     all_activities = []
     for page in range(1, max_pages + 1):
         response = requests.get(
@@ -208,14 +208,13 @@ def logout():
     session.clear()
     return redirect('/')
 
-@app.route('/predict_distances', methods=['POST'])
+@app.route('/predict_distances', methods=['POST','GET'])
 def predict_distances_route():
     token = get_valid_token()
     if not token:
         return redirect('/authorize')
 
     train_model_if_needed(token)
-
     data = request.json
     if not data:
         return jsonify({"error": "No JSON data provided"}), 400
@@ -296,9 +295,11 @@ def load_demo_data():
     demo_data = pd.read_csv('activities.csv')
 @app.route('/save_activities_csv')
 def save_activities_csv():
-    page_activities = pd.to_csv('activities_strava')
-    if page_activities:
-        print("Saved activities to csv")
+    token = get_valid_token()
+    activities_to_save = get_activities(token)
+    df = pd.DataFrame(activities_to_save)
+    df.to_csv('activities.csv', index=False)
+    return render_template('dashboard.html')
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=1234, debug=True)
  

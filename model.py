@@ -2,6 +2,7 @@
 import pandas as pd
 from sklearn.linear_model import LinearRegression 
 import numpy as np
+import requests
 class StravaModel:
     def __init__(self):
         self.model = LinearRegression()
